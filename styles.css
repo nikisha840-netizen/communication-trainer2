@@ -1463,7 +1463,25 @@ textarea {
 /* ============================================
    PRINT STYLES
    ============================================ */
+/* ============================================
+   IFRAME MODE
+   ============================================ */
 
+@media (max-height: 900px) {
+    .app-header {
+        padding: var(--space-3) var(--space-4);
+        flex-shrink: 0;
+    }
+
+    .progress-info {
+        display: none;
+    }
+
+    .app-title {
+        font-size: var(--font-size-md);
+        margin-bottom: 0;
+    }
+}
 @media print {
     .app-header,
     .navigation-buttons,
