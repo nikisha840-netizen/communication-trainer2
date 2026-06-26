@@ -991,7 +991,41 @@ textarea {
     font-size: 18px;
     flex-shrink: 0;
 }
+/* ============================================
+   SEND TO CHAT SECTION
+   ============================================ */
 
+.section-send-chat {
+    gap: var(--space-3);
+}
+
+.send-chat-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+}
+
+.btn-send-chat {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-send-chat:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-send-chat:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .send-chat-buttons {
+        grid-template-columns: 1fr;
+    }
+}
 /* ============================================
    MODAL
    ============================================ */
