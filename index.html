@@ -31,24 +31,15 @@
 
         <!-- MAIN LAYOUT -->
         <div class="layout" data-layout style="display: none;">
-            <!-- HEADER WITH PROGRESS -->
+            <!-- MINIMAL HEADER -->
             <header class="app-header" data-app-header>
                 <div class="header-content">
-                    <h1 class="app-title">Профессиональная коммуникация</h1>
-                    <div class="progress-info">
-                        <span class="progress-counter">
-                            Кейс <span data-current-case>1</span> из <span data-total-cases>0</span>
-                        </span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" data-progress-fill></div>
-                        </div>
+                    <h1 class="app-title">Кейс <span data-current-case>1</span>/<span data-total-cases>0</span></h1>
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-progress-fill></div>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="header-btn" data-help-btn aria-label="Справка" title="Справка">
-                        <span>?</span>
-                    </button>
-                </div>
+                <button class="header-btn" data-help-btn aria-label="Справка" title="Справка">?</button>
             </header>
 
             <!-- MAIN CONTENT -->
@@ -56,10 +47,8 @@
                 <!-- LEFT PANEL: CHAT -->
                 <aside class="panel panel-chat" data-panel-chat>
                     <div class="chat-header">
-                        <div class="chat-header-content">
-                            <h2 class="chat-project-title" data-chat-project>Проект</h2>
-                            <p class="chat-context" data-chat-context></p>
-                        </div>
+                        <h2 class="chat-project-title" data-chat-project>Проект</h2>
+                        <p class="chat-context" data-chat-context></p>
                     </div>
 
                     <div class="messages-wrapper">
@@ -76,10 +65,8 @@
                 <!-- RIGHT PANEL: WORKSPACE -->
                 <article class="panel panel-workspace" data-panel-workspace>
                     <div class="workspace-header">
-                        <div class="workspace-header-content">
-                            <h2 class="workspace-title" data-workspace-title>Задание</h2>
-                            <p class="workspace-subtitle" data-workspace-subtitle></p>
-                        </div>
+                        <h2 class="workspace-title" data-workspace-title>Задание</h2>
+                        <p class="workspace-subtitle" data-workspace-subtitle></p>
                     </div>
 
                     <div class="workspace-scroll" data-workspace-scroll>
@@ -127,7 +114,7 @@
                             <div class="section-header">
                                 <h3 class="section-label">Пример хорошего ответа</h3>
                                 <button class="solution-copy-btn" data-solution-copy aria-label="Скопировать ответ">
-                                    <span class="copy-icon">📋</span>
+                                    📋
                                 </button>
                             </div>
                             <div class="solution-content" data-solution-content></div>
@@ -141,8 +128,7 @@
                                     ← Назад
                                 </button>
                                 <button class="btn btn-primary" data-show-solution-btn aria-label="Показать решение">
-                                    <span class="btn-text">Показать решение</span>
-                                    <span class="btn-arrow">→</span>
+                                    Показать решение →
                                 </button>
                                 <button class="btn btn-secondary" data-next-case-btn aria-label="Следующий кейс">
                                     Далее →
