@@ -178,14 +178,14 @@ textarea {
 
 .app-header {
     flex-shrink: 0;
-    padding: var(--space-6) var(--space-8);
+    padding: var(--space-2) var(--space-3);
     background: linear-gradient(135deg, var(--color-bg-white) 0%, var(--color-primary-lighter) 100%);
     border-bottom: 1px solid var(--color-border-light);
     box-shadow: var(--shadow-xs);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-6);
+    gap: var(--space-3);
 }
 
 .header-content {
@@ -298,7 +298,7 @@ textarea {
 
 .chat-header {
     flex-shrink: 0;
-    padding: var(--space-6);
+    padding: var(--space-3);
     border-bottom: 1px solid var(--color-border-light);
     background-color: var(--color-bg-white);
 }
@@ -310,10 +310,11 @@ textarea {
 }
 
 .chat-project-title {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
+    font-size: var(--font-size-md);
+    font-weight: 600;
     color: var(--color-text-primary);
-    letter-spacing: -0.4px;
+    letter-spacing: -0.2px;
+    margin: 0;
 }
 
 .chat-context {
@@ -333,10 +334,10 @@ textarea {
 .messages-container {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-6);
+    padding: var(--space-3);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-2);
     -webkit-overflow-scrolling: touch;
 }
 
@@ -480,8 +481,8 @@ textarea {
 
 .workspace-header {
     flex-shrink: 0;
-    padding: var(--space-6) var(--space-8);
-    border-bottom: 1px solid var(--color-border-light);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-bg-white);
     background-color: var(--color-bg-white);
 }
 
@@ -492,11 +493,12 @@ textarea {
 }
 
 .workspace-title {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
     color: var(--color-text-primary);
-    letter-spacing: -0.6px;
+    letter-spacing: -0.3px;
     line-height: var(--line-height-tight);
+    margin: 0;
 }
 
 .workspace-subtitle {
@@ -509,10 +511,10 @@ textarea {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: var(--space-8);
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
+    gap: var(--space-6);
 }
 
 .workspace-scroll::-webkit-scrollbar {
