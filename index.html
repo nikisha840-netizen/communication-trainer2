@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Интерактивный тренажер профессиональной коммуникации">
+    <meta name="theme-color" content="#6D4CFF">
+    <title>Тренажер коммуникации</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app" data-app-root>
+        <!-- LOADING STATE -->
+        <div class="loading-state" data-loading-state style="display: none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Загрузка тренажера...</p>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div class="error-state" data-error-state style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <p class="error-title">Ошибка загрузки</p>
+            <p class="error-message" data-error-message></p>
+            <button class="error-retry-btn" data-error-retry>Попробовать снова</button>
+        </div>
+
+        <!-- MAIN LAYOUT -->
+        <div class="layout" data-layout style="display: none;">
+            <!-- HEADER WITH PROGRESS -->
+            <header class="app-header" data-app-header>
+                <div class="header-content">
+                    <h1 class="app-title">Профессиональная коммуникация</h1>
+                    <div class="progress-info">
+                        <span class="progress-counter">
+                            Кейс <span data-current-case>1</span> из <span data-total-cases>0</span>
+                        </span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-progress-fill></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" data-help-btn aria-label="Справка" title="Справка">
+                        <span>?</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
+                <!-- LEFT PANEL: CHAT -->
+                <aside class="panel panel-chat" data-panel-chat>
+                    <div class="chat-header">
+                        <div class="chat-header-content">
+                            <h2 class="chat-project-title" data-chat-project>Проект</h2>
+                            <p class="chat-context" data-chat-context></p>
+                        </div>
+                    </div>
+
+                    <div class="messages-wrapper">
+                        <div class="messages-container" data-messages-container role="log" aria-label="История переписки">
+                            <!-- Messages will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="chat-footer">
+                        <div class="chat-status" data-chat-status></div>
+                    </div>
+                </aside>
+
+                <!-- RIGHT PANEL: WORKSPACE -->
+                <article class="panel panel-workspace" data-panel-workspace>
+                    <div class="workspace-header">
+                        <div class="workspace-header-content">
+                            <h2 class="workspace-title" data-workspace-title>Задание</h2>
+                            <p class="workspace-subtitle" data-workspace-subtitle></p>
+                        </div>
+                    </div>
+
+                    <div class="workspace-scroll" data-workspace-scroll>
+                        <!-- INSTRUCTION SECTION -->
+                        <section class="workspace-section">
+                            <div class="section-instruction">
+                                <h3 class="section-label">Ваша задача</h3>
+                                <p class="instruction-text" data-instruction-text></p>
+                            </div>
+                        </section>
+
+                        <!-- ANSWER SECTION -->
+                        <section class="workspace-section section-answer">
+                            <div class="section-header">
+                                <h3 class="section-label">Напишите ответ</h3>
+                                <span class="char-count">
+                                    <span data-char-current>0</span>/<span data-char-limit>500</span>
+                                </span>
+                            </div>
+                            <textarea
+                                class="textarea-input"
+                                data-answer-input
+                                placeholder="Как бы вы ответили клиенту?"
+                                spellcheck="true"
+                                autocomplete="off"
+                                maxlength="500"
+                                aria-label="Поле для ввода ответа"
+                            ></textarea>
+                            <div class="input-hint" data-input-hint></div>
+                        </section>
+
+                        <!-- CHECKLIST SECTION -->
+                        <section class="workspace-section section-checklist">
+                            <div class="section-header">
+                                <h3 class="section-label">Модель проверки</h3>
+                                <span class="checklist-progress" data-checklist-progress>0/4</span>
+                            </div>
+                            <div class="checklist-container" data-checklist-container role="group" aria-label="Критерии проверки">
+                                <!-- Checklist items will be injected here -->
+                            </div>
+                        </section>
+
+                        <!-- SOLUTION SECTION -->
+                        <section class="workspace-section section-solution" data-solution-section style="display: none;">
+                            <div class="section-header">
+                                <h3 class="section-label">Пример хорошего ответа</h3>
+                                <button class="solution-copy-btn" data-solution-copy aria-label="Скопировать ответ">
+                                    <span class="copy-icon">📋</span>
+                                </button>
+                            </div>
+                            <div class="solution-content" data-solution-content></div>
+                            <div class="solution-feedback" data-solution-feedback></div>
+                        </section>
+
+                        <!-- NAVIGATION SECTION -->
+                        <section class="workspace-section section-navigation">
+                            <div class="navigation-buttons">
+                                <button class="btn btn-secondary" data-prev-case-btn aria-label="Предыдущий кейс">
+                                    ← Назад
+                                </button>
+                                <button class="btn btn-primary" data-show-solution-btn aria-label="Показать решение">
+                                    <span class="btn-text">Показать решение</span>
+                                    <span class="btn-arrow">→</span>
+                                </button>
+                                <button class="btn btn-secondary" data-next-case-btn aria-label="Следующий кейс">
+                                    Далее →
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                </article>
+            </main>
+        </div>
+
+        <!-- TOAST NOTIFICATIONS -->
+        <div class="toast-container" data-toast-container aria-live="polite" aria-atomic="true"></div>
+
+        <!-- HELP MODAL -->
+        <dialog class="modal" data-help-modal>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Как пользоваться тренажером</h2>
+                    <button class="modal-close" data-modal-close aria-label="Закрыть">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-item">
+                        <h4>1. Анализируйте переписку</h4>
+                        <p>Слева вы видите реальный диалог. Определите, что не так в ответе специалиста.</p>
+                    </div>
+                    <div class="help-item">
+                        <h4>2. Напишите свой ответ</h4>
+                        <p>Используйте модель проверки справа. Она подскажет, на что обратить внимание.</p>
+                    </div>
+                    <div class="help-item">
+                        <h4>3. Проверьте себя</h4>
+                        <p>Нажмите "Показать решение" и сравните с примером хорошего ответа.</p>
+                    </div>
+                    <div class="help-item">
+                        <h4>4. Переходите к следующему</h4>
+                        <p>Кнопка "Далее" откроет новый кейс. Тренируйтесь больше!</p>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="config.js"></script>
+    <script src="cases.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
