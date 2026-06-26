@@ -259,64 +259,97 @@ class CommunicationTrainer {
         this.dom.instructionText.textContent = caseData.instruction;
     }
 
-    /**
-     * Render chat messages with grouping
-     */
-    renderMessages(messages) {
-        this.dom.messagesContainer.innerHTML = '';
+/**
+ * Render chat messages with grouping
+ */
+renderMessages(messages) {
+    this.dom.messagesContainer.innerHTML = '';
 
-        let lastAuthor = null;
-        let currentGroup = null;
+    let lastAuthor = null;
+    let currentGroup = null;
 
-        messages.forEach((msg, index) => {
-            if (msg.author !== lastAuthor) {
-                currentGroup = document.createElement('div');
-                currentGroup.className = `message-group group-${msg.side}`;
-                this.dom.messagesContainer.appendChild(currentGroup);
+    messages.forEach((msg, index) => {
+        if (msg.author !== lastAuthor) {
+            currentGroup = document.createElement('div');
+            currentGroup.className = `message-group group-${msg.side}`;
+            this.dom.messagesContainer.appendChild(currentGroup);
 
-                const header = document.createElement('div');
-                header.className = 'message-group-header';
-                header.textContent = msg.author;
-                currentGroup.appendChild(header);
+            const header = document.createElement('div');
+            header.className = 'message-group-header';
+            header.textContent = msg.author;
+            currentGroup.appendChild(header);
 
-                lastAuthor = msg.author;
-            }
+            lastAuthor = msg.author;
+        }
 
-            const messageEl = this.createMessageElement(msg);
-            messageEl.style.animationDelay = `${index * CONFIG.ui.messageGroupDelay}ms`;
-            currentGroup.appendChild(messageEl);
-        });
+        // Помечаем плохой ответ специалиста как 'bad'
+        const messageToRender = { ...msg };
+        if (msg.side === 'own' && !messageToRender.type) {
+            messageToRender.type = 'bad'; // 👈 Это плохой ответ
+        }
 
-        setTimeout(() => {
-            this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
-        }, CONFIG.ui.autoscrollDelay);
-    }
+        const messageEl = this.createMessageElement(messageToRender);
+        messageEl.style.animationDelay = `${index * CONFIG.ui.messageGroupDelay}ms`;
+        currentGroup.appendChild(messageEl);
+    });
+
+    setTimeout(() => {
+        this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
+    }, CONFIG.ui.autoscrollDelay);
+}
 
     /**
      * Create message element
      */
-    createMessageElement(message) {
-        const messageEl = document.createElement('div');
-        messageEl.className = `message ${message.side}`;
-
-        const author = document.createElement('span');
-        author.className = 'message-author';
-        author.textContent = message.author;
-
-        const bubble = document.createElement('div');
-        bubble.className = 'message-bubble';
-        bubble.textContent = message.text;
-
-        const time = document.createElement('span');
-        time.className = 'message-time';
-        time.textContent = message.time;
-
-        messageEl.appendChild(author);
-        messageEl.appendChild(bubble);
-        messageEl.appendChild(time);
-
-        return messageEl;
+/**
+ * Create message element
+ */
+createMessageElement(message) {
+    const messageEl = document.createElement('div');
+    messageEl.className = `message ${message.side}`;
+    
+    // Добавляем тип сообщения (для стилизации)
+    if (message.type) {
+        messageEl.setAttribute('data-message-type', message.type);
     }
+
+    const author = document.createElement('span');
+    author.className = 'message-author';
+    author.textContent = message.author;
+
+    // Если это "плохой ответ" или "хороший ответ" - добавляем ярлык
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    
+    // Создаём контейнер для ярлыка и текста
+    if (message.type === 'bad' || message.type === 'good') {
+        const badgeEl = document.createElement('div');
+        badgeEl.className = `message-badge message-badge-${message.type}`;
+        
+        if (message.type === 'bad') {
+            badgeEl.innerHTML = '❌ Неправильно';
+        } else if (message.type === 'good') {
+            badgeEl.innerHTML = '✅ Твой вариант';
+        }
+        
+        bubble.appendChild(badgeEl);
+    }
+    
+    const textEl = document.createElement('div');
+    textEl.className = 'message-text';
+    textEl.textContent = message.text;
+    bubble.appendChild(textEl);
+
+    const time = document.createElement('span');
+    time.className = 'message-time';
+    time.textContent = message.time;
+
+    messageEl.appendChild(author);
+    messageEl.appendChild(bubble);
+    messageEl.appendChild(time);
+
+    return messageEl;
+}
 
     /**
      * Render checklist
@@ -405,64 +438,65 @@ class CommunicationTrainer {
         this.events.emit('answer-changed', { length });
     }
 
-    /**
-     * Send answer to chat
-     */
-    sendAnswerToChat() {
-        const answer = this.dom.answerInput.value.trim();
+  /**
+ * Send answer to chat
+ */
+sendAnswerToChat() {
+    const answer = this.dom.answerInput.value.trim();
 
-        if (answer.length < CONFIG.validation.minAnswerLength) {
-            this.toast.info(CONFIG.messages.emptyAnswer);
-            return;
-        }
-
-        // Create message object
-        const newMessage = {
-            author: 'Ты',
-            side: 'own',
-            time: this.getCurrentTime(),
-            text: answer,
-        };
-
-        // Add to messages container
-        let lastGroup = this.dom.messagesContainer.lastElementChild;
-
-        // Check if last group is 'own' messages
-        if (!lastGroup || !lastGroup.classList.contains('group-own')) {
-            const newGroup = document.createElement('div');
-            newGroup.className = 'message-group group-own';
-
-            const header = document.createElement('div');
-            header.className = 'message-group-header';
-            header.textContent = 'Ты';
-            newGroup.appendChild(header);
-
-            this.dom.messagesContainer.appendChild(newGroup);
-            lastGroup = newGroup;
-        }
-
-        // Create and add message element
-        const messageEl = this.createMessageElement(newMessage);
-        lastGroup.appendChild(messageEl);
-
-        // Scroll to bottom
-        setTimeout(() => {
-            this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
-        }, 100);
-
-        // Clear textarea
-        this.dom.answerInput.value = '';
-        this.dom.charCurrent.textContent = '0';
-        this.dom.inputHint.textContent = '';
-        this.dom.inputHint.classList.remove('active');
-        this.dom.sendAnswerBtn.disabled = true;
-
-        // Mark as sent
-        this.state.answerSent = true;
-
-        this.toast.success('✓ Ответ отправлен в чат!');
-        this.events.emit('answer-sent', { message: answer });
+    if (answer.length < CONFIG.validation.minAnswerLength) {
+        this.toast.info(CONFIG.messages.emptyAnswer);
+        return;
     }
+
+    // Create message object with type 'good'
+    const newMessage = {
+        author: 'Ты',
+        side: 'own',
+        time: this.getCurrentTime(),
+        text: answer,
+        type: 'good',  // 👈 Отмечаем как "хороший ответ"
+    };
+
+    // Add to messages container
+    let lastGroup = this.dom.messagesContainer.lastElementChild;
+
+    // Check if last group is 'own' messages
+    if (!lastGroup || !lastGroup.classList.contains('group-own')) {
+        const newGroup = document.createElement('div');
+        newGroup.className = 'message-group group-own';
+
+        const header = document.createElement('div');
+        header.className = 'message-group-header';
+        header.textContent = 'Ты';
+        newGroup.appendChild(header);
+
+        this.dom.messagesContainer.appendChild(newGroup);
+        lastGroup = newGroup;
+    }
+
+    // Create and add message element
+    const messageEl = this.createMessageElement(newMessage);
+    lastGroup.appendChild(messageEl);
+
+    // Scroll to bottom
+    setTimeout(() => {
+        this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
+    }, 100);
+
+    // Clear textarea
+    this.dom.answerInput.value = '';
+    this.dom.charCurrent.textContent = '0';
+    this.dom.inputHint.textContent = '';
+    this.dom.inputHint.classList.remove('active');
+    this.dom.sendAnswerBtn.disabled = true;
+
+    // Mark as sent
+    this.state.answerSent = true;
+
+    this.toast.success('✓ Ответ отправлен в чат!');
+    this.events.emit('answer-sent', { message: answer });
+}
 
     /**
      * Clear answer
