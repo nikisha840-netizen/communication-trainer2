@@ -71,7 +71,7 @@ class ToastManager {
         const index = this.toasts.findIndex(t => t.id === id);
         if (index > -1) {
             const { element } = this.toasts[index];
-            element.style.animation = 'toastSlideOut 200ms ease-out forwards';
+            element.style.opacity = '0';
             setTimeout(() => {
                 element.remove();
                 this.toasts.splice(index, 1);
@@ -100,10 +100,11 @@ class CommunicationTrainer {
         // State
         this.state = {
             currentCaseIndex: 0,
-            appState: 'loading', // loading, ready, error
+            appState: 'loading',
             error: null,
             solutionShown: false,
             checkedItems: new Set(),
+            answerSent: false,
         };
 
         // Event system
@@ -134,7 +135,6 @@ class CommunicationTrainer {
             errorMessage: document.querySelector('[data-error-message]'),
             errorRetryBtn: document.querySelector('[data-error-retry]'),
 
-            header: document.querySelector('[data-app-header]'),
             currentCaseSpan: document.querySelector('[data-current-case]'),
             totalCasesSpan: document.querySelector('[data-total-cases]'),
             progressFill: document.querySelector('[data-progress-fill]'),
@@ -160,6 +160,8 @@ class CommunicationTrainer {
             solutionCopyBtn: document.querySelector('[data-solution-copy]'),
 
             showSolutionBtn: document.querySelector('[data-show-solution-btn]'),
+            sendAnswerBtn: document.querySelector('[data-send-answer-btn]'),
+            clearAnswerBtn: document.querySelector('[data-clear-answer-btn]'),
             nextCaseBtn: document.querySelector('[data-next-case-btn]'),
             prevCaseBtn: document.querySelector('[data-prev-case-btn]'),
 
@@ -176,21 +178,13 @@ class CommunicationTrainer {
         try {
             this.setState({ appState: 'loading' });
 
-            // Validate data
             if (!this.validateCases()) {
                 throw new Error('Недопустимая структура кейсов');
             }
 
-            // Setup event listeners
             this.setupEventListeners();
-
-            // Load first case
             this.loadCase(0);
-
-            // Update UI
             this.updateTotalCases();
-
-            // Show main layout
             this.setState({ appState: 'ready' });
             this.showLayout();
 
@@ -214,46 +208,19 @@ class CommunicationTrainer {
      * Setup all event listeners
      */
     setupEventListeners() {
-        // Answer input
         this.dom.answerInput.addEventListener('input', (e) => this.onAnswerInput(e));
-
-        // Buttons
         this.dom.showSolutionBtn.addEventListener('click', () => this.toggleSolution());
+        this.dom.sendAnswerBtn.addEventListener('click', () => this.sendAnswerToChat());
+        this.dom.clearAnswerBtn.addEventListener('click', () => this.clearAnswer());
         this.dom.nextCaseBtn.addEventListener('click', () => this.nextCase());
         this.dom.prevCaseBtn.addEventListener('click', () => this.previousCase());
-
-        // Help modal
         this.dom.helpBtn.addEventListener('click', () => this.openHelpModal());
         this.dom.modalClose.addEventListener('click', () => this.closeHelpModal());
         this.dom.helpModal.addEventListener('click', (e) => {
             if (e.target === this.dom.helpModal) this.closeHelpModal();
         });
-
-        // Solution copy button
         this.dom.solutionCopyBtn.addEventListener('click', () => this.copySolutionToClipboard());
-
-        // Error retry
         this.dom.errorRetryBtn.addEventListener('click', () => this.init());
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-
-        // Accessibility: focus management
-        this.dom.answerInput.addEventListener('focus', () => {
-            this.dom.answerInput.setAttribute('aria-expanded', 'true');
-        });
-    }
-
-    /**
-     * Handle keyboard shortcuts
-     */
-    handleKeyboard(e) {
-        if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.toggleSolution();
-            }
-        }
     }
 
     /**
@@ -270,17 +237,14 @@ class CommunicationTrainer {
         this.state.currentCaseIndex = index;
         this.state.solutionShown = false;
         this.state.checkedItems.clear();
+        this.state.answerSent = false;
 
-        // Render UI
         this.renderCaseHeader(caseData);
         this.renderMessages(caseData.messages);
         this.renderChecklist(caseData.checklist);
         this.resetWorkspace();
-
-        // Update progress
         this.updateProgress();
 
-        // Emit event
         this.events.emit('case-loaded', { index, caseData });
     }
 
@@ -305,7 +269,6 @@ class CommunicationTrainer {
         let currentGroup = null;
 
         messages.forEach((msg, index) => {
-            // Create new group if author changed
             if (msg.author !== lastAuthor) {
                 currentGroup = document.createElement('div');
                 currentGroup.className = `message-group group-${msg.side}`;
@@ -319,13 +282,11 @@ class CommunicationTrainer {
                 lastAuthor = msg.author;
             }
 
-            // Create message element
             const messageEl = this.createMessageElement(msg);
             messageEl.style.animationDelay = `${index * CONFIG.ui.messageGroupDelay}ms`;
             currentGroup.appendChild(messageEl);
         });
 
-        // Auto-scroll to bottom
         setTimeout(() => {
             this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
         }, CONFIG.ui.autoscrollDelay);
@@ -337,7 +298,6 @@ class CommunicationTrainer {
     createMessageElement(message) {
         const messageEl = document.createElement('div');
         messageEl.className = `message ${message.side}`;
-        messageEl.setAttribute('role', 'article');
 
         const author = document.createElement('span');
         author.className = 'message-author';
@@ -346,12 +306,10 @@ class CommunicationTrainer {
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
         bubble.textContent = message.text;
-        bubble.setAttribute('aria-label', `Сообщение от ${message.author}: ${message.text}`);
 
         const time = document.createElement('span');
         time.className = 'message-time';
         time.textContent = message.time;
-        time.setAttribute('aria-label', `Время: ${message.time}`);
 
         messageEl.appendChild(author);
         messageEl.appendChild(bubble);
@@ -369,9 +327,6 @@ class CommunicationTrainer {
         checklistItems.forEach(item => {
             const card = document.createElement('div');
             card.className = 'checklist-card';
-            card.setAttribute('role', 'checkbox');
-            card.setAttribute('aria-checked', 'false');
-            card.setAttribute('tabindex', '0');
             card.dataset.itemId = item.id;
 
             card.innerHTML = `
@@ -385,13 +340,6 @@ class CommunicationTrainer {
             `;
 
             card.addEventListener('click', () => this.toggleChecklistCard(item.id, card));
-            card.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.toggleChecklistCard(item.id, card);
-                }
-            });
-
             this.dom.checklistContainer.appendChild(card);
         });
 
@@ -405,11 +353,9 @@ class CommunicationTrainer {
         if (this.state.checkedItems.has(itemId)) {
             this.state.checkedItems.delete(itemId);
             cardElement.classList.remove('checked');
-            cardElement.setAttribute('aria-checked', 'false');
         } else {
             this.state.checkedItems.add(itemId);
             cardElement.classList.add('checked');
-            cardElement.setAttribute('aria-checked', 'true');
         }
 
         this.updateChecklistProgress();
@@ -434,29 +380,117 @@ class CommunicationTrainer {
         const length = value.length;
         const max = parseInt(this.dom.answerInput.getAttribute('maxlength'));
 
-        // Update char count
         this.dom.charCurrent.textContent = length;
 
-        // Warning when approaching limit
         if (length >= max * CONFIG.validation.warningThreshold) {
-            this.dom.charCount.classList.add('warning');
+            this.dom.charCount?.classList.add('warning');
         } else {
             this.dom.charCount?.classList.remove('warning');
         }
 
-        // Show hint
         if (length < CONFIG.validation.minAnswerLength) {
             this.dom.inputHint.textContent = `Минимум ${CONFIG.validation.minAnswerLength} символов`;
             this.dom.inputHint.classList.remove('active');
+            this.dom.sendAnswerBtn.disabled = true;
         } else if (length > CONFIG.validation.maxAnswerLength) {
             this.dom.inputHint.textContent = 'Превышена максимальная длина';
             this.dom.inputHint.classList.remove('active');
+            this.dom.sendAnswerBtn.disabled = true;
         } else {
-            this.dom.inputHint.textContent = `${length} символов — отлично!`;
+            this.dom.inputHint.textContent = `${length} символов — готово!`;
             this.dom.inputHint.classList.add('active');
+            this.dom.sendAnswerBtn.disabled = false;
         }
 
         this.events.emit('answer-changed', { length });
+    }
+
+    /**
+     * Send answer to chat
+     */
+    sendAnswerToChat() {
+        const answer = this.dom.answerInput.value.trim();
+
+        if (answer.length < CONFIG.validation.minAnswerLength) {
+            this.toast.info(CONFIG.messages.emptyAnswer);
+            return;
+        }
+
+        // Create message object
+        const newMessage = {
+            author: 'Ты',
+            side: 'own',
+            time: this.getCurrentTime(),
+            text: answer,
+        };
+
+        // Add to messages container
+        let lastGroup = this.dom.messagesContainer.lastElementChild;
+
+        // Check if last group is 'own' messages
+        if (!lastGroup || !lastGroup.classList.contains('group-own')) {
+            const newGroup = document.createElement('div');
+            newGroup.className = 'message-group group-own';
+
+            const header = document.createElement('div');
+            header.className = 'message-group-header';
+            header.textContent = 'Ты';
+            newGroup.appendChild(header);
+
+            this.dom.messagesContainer.appendChild(newGroup);
+            lastGroup = newGroup;
+        }
+
+        // Create and add message element
+        const messageEl = this.createMessageElement(newMessage);
+        lastGroup.appendChild(messageEl);
+
+        // Scroll to bottom
+        setTimeout(() => {
+            this.dom.messagesContainer.scrollTop = this.dom.messagesContainer.scrollHeight;
+        }, 100);
+
+        // Clear textarea
+        this.dom.answerInput.value = '';
+        this.dom.charCurrent.textContent = '0';
+        this.dom.inputHint.textContent = '';
+        this.dom.inputHint.classList.remove('active');
+        this.dom.sendAnswerBtn.disabled = true;
+
+        // Mark as sent
+        this.state.answerSent = true;
+
+        this.toast.success('✓ Ответ отправлен в чат!');
+        this.events.emit('answer-sent', { message: answer });
+    }
+
+    /**
+     * Clear answer
+     */
+    clearAnswer() {
+        if (this.dom.answerInput.value.trim().length === 0) {
+            this.toast.info('Поле уже пусто');
+            return;
+        }
+
+        this.dom.answerInput.value = '';
+        this.dom.charCurrent.textContent = '0';
+        this.dom.inputHint.textContent = '';
+        this.dom.inputHint.classList.remove('active');
+        this.dom.sendAnswerBtn.disabled = true;
+        this.dom.answerInput.focus();
+
+        this.toast.info('Ответ очищен');
+    }
+
+    /**
+     * Get current time
+     */
+    getCurrentTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
     }
 
     /**
@@ -476,27 +510,15 @@ class CommunicationTrainer {
     showSolution() {
         const caseData = this.cases[this.state.currentCaseIndex];
 
-        // Validate answer
-        const answer = this.dom.answerInput.value.trim();
-        if (answer.length < CONFIG.validation.minAnswerLength) {
-            this.toast.info(CONFIG.messages.emptyAnswer);
-            return;
-        }
-
-        // Show solution
         this.dom.solutionContent.textContent = caseData.solution;
         this.dom.solutionSection.style.display = 'flex';
 
-        // Update button
         this.dom.showSolutionBtn.textContent = 'Скрыть решение';
-        this.dom.showSolutionBtn.classList.add('solution-shown');
 
         this.state.solutionShown = true;
 
-        // Show feedback
         this.showSolutionFeedback();
 
-        // Scroll to solution
         setTimeout(() => {
             this.dom.solutionSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
@@ -510,7 +532,6 @@ class CommunicationTrainer {
     hideSolution() {
         this.dom.solutionSection.style.display = 'none';
         this.dom.showSolutionBtn.textContent = 'Показать решение';
-        this.dom.showSolutionBtn.classList.remove('solution-shown');
 
         this.state.solutionShown = false;
 
@@ -542,7 +563,6 @@ class CommunicationTrainer {
             await navigator.clipboard.writeText(text);
             this.toast.success(CONFIG.messages.copying);
 
-            // Visual feedback
             this.dom.solutionCopyBtn.classList.add('copied');
             setTimeout(() => {
                 this.dom.solutionCopyBtn.classList.remove('copied');
@@ -596,7 +616,6 @@ class CommunicationTrainer {
         this.dom.currentCaseSpan.textContent = current;
         this.dom.progressFill.style.width = `${percentage}%`;
 
-        // Update button states
         this.dom.prevCaseBtn.disabled = current === 1;
         this.dom.nextCaseBtn.disabled = current === total;
     }
@@ -611,7 +630,7 @@ class CommunicationTrainer {
         this.dom.inputHint.classList.remove('active');
         this.dom.solutionSection.style.display = 'none';
         this.dom.showSolutionBtn.textContent = 'Показать решение';
-        this.dom.showSolutionBtn.classList.remove('solution-shown');
+        this.dom.sendAnswerBtn.disabled = true;
         this.dom.answerInput.focus();
     }
 
@@ -691,13 +710,12 @@ let trainer;
 document.addEventListener('DOMContentLoaded', () => {
     try {
         trainer = new CommunicationTrainer();
-        window.trainer = trainer; // For debugging in console
+        window.trainer = trainer;
     } catch (error) {
         console.error('Fatal error:', error);
     }
 });
 
-// Handle unhandled promise rejections
 window.addEventListener('unhandledrejection', (e) => {
     console.error('Unhandled Promise Rejection:', e.reason);
 });
