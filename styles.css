@@ -820,8 +820,8 @@ textarea {
 
 .solution-content {
     padding: var(--space-5);
-    background: linear-gradient(135deg, var(--color-primary-lighter) 0%, rgba(139, 92, 246, 0.05) 100%);
-    border: 1px solid var(--color-primary);
+    background: linear-gradient(135deg, #F9F7FF 0%, #F5F3FF 100%);
+    border: 2px solid var(--color-primary);
     border-radius: var(--radius-lg);
     color: var(--color-text-primary);
     font-size: var(--font-size-md);
@@ -829,6 +829,7 @@ textarea {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    box-shadow: 0 4px 12px rgba(109, 76, 255, 0.15);
 }
 
 .solution-feedback {
