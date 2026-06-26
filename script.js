@@ -491,11 +491,14 @@ sendAnswerToChat() {
     this.dom.inputHint.classList.remove('active');
     this.dom.sendAnswerBtn.disabled = true;
 
-    // Mark as sent
-    this.state.answerSent = true;
+   // Mark as sent
+this.state.answerSent = true;
 
-    this.toast.success('✓ Ответ отправлен в чат!');
-    this.events.emit('answer-sent', { message: answer });
+// Активируем кнопку "Показать решение"
+this.dom.showSolutionBtn.disabled = false;
+
+this.toast.success('✓ Ответ отправлен в чат!');
+this.events.emit('answer-sent', { message: answer });
 }
 
     /**
@@ -560,17 +563,18 @@ sendAnswerToChat() {
         this.events.emit('solution-shown', {});
     }
 
-    /**
-     * Hide solution
-     */
-    hideSolution() {
-        this.dom.solutionSection.style.display = 'none';
-        this.dom.showSolutionBtn.textContent = 'Показать решение';
+   /**
+ * Hide solution
+ */
+hideSolution() {
+    this.dom.solutionSection.style.display = 'none';
+    this.dom.showSolutionBtn.textContent = 'Показать решение';
+    this.dom.showSolutionBtn.disabled = !this.state.answerSent;  // 👈 ДОБАВЬ ЭТУ СТРОКУ
 
-        this.state.solutionShown = false;
+    this.state.solutionShown = false;
 
-        this.events.emit('solution-hidden', {});
-    }
+    this.events.emit('solution-hidden', {});
+}
 
     /**
      * Show solution feedback
@@ -655,18 +659,19 @@ sendAnswerToChat() {
     }
 
     /**
-     * Reset workspace for new case
-     */
-    resetWorkspace() {
-        this.dom.answerInput.value = '';
-        this.dom.charCurrent.textContent = '0';
-        this.dom.inputHint.textContent = '';
-        this.dom.inputHint.classList.remove('active');
-        this.dom.solutionSection.style.display = 'none';
-        this.dom.showSolutionBtn.textContent = 'Показать решение';
-        this.dom.sendAnswerBtn.disabled = true;
-        this.dom.answerInput.focus();
-    }
+ * Reset workspace for new case
+ */
+resetWorkspace() {
+    this.dom.answerInput.value = '';
+    this.dom.charCurrent.textContent = '0';
+    this.dom.inputHint.textContent = '';
+    this.dom.inputHint.classList.remove('active');
+    this.dom.solutionSection.style.display = 'none';
+    this.dom.showSolutionBtn.textContent = 'Показать решение';
+    this.dom.showSolutionBtn.disabled = true;  // 👈 ДОБАВЬ ЭТУ СТРОКУ
+    this.dom.sendAnswerBtn.disabled = true;
+    this.dom.answerInput.focus();
+}
 
     /**
      * Open help modal
